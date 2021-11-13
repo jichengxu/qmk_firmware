@@ -128,11 +128,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *                   `----------------------------'           '------''--------------------'
  */
   [_PLOVER] = LAYOUT( \
-  STN_N1 , STN_N2 , STN_N3 , STN_N4 , STN_N5 , STN_N6 ,                   STN_N7 , STN_N8  , STN_N9 , STN_NA, STN_NB , STN_NC , \
-  _______, STN_S1 , STN_TL , STN_PL , STN_HL , STN_ST1,                   STN_ST3, STN_FR  , STN_PR , STN_LR, STN_TR , STN_DR , \
-  _______, STN_S2 , STN_KL , STN_WL , STN_RL , STN_ST2,                   STN_ST4, STN_RR  , STN_BR , STN_GR, STN_SR , STN_ZR , \
-  _______, _______, _______, _______, _______, _______,_______,TG(_PLOVER), _______, _______, _______, _______, _______, _______, \
-                             _______, _______, STN_A  , STN_O , STN_E     , STN_E  , _______, _______ \
+  STN_N1 , STN_N2 , STN_N3 , STN_N4 , STN_N5 , STN_N6 ,                     STN_N7 , STN_N8 , STN_N9 , STN_NA , STN_NB , STN_NC, \
+  XXXXXXX, STN_S1 , STN_TL , STN_PL , STN_HL , STN_ST1,                     STN_ST3, STN_FR , STN_PR , STN_LR , STN_TR , STN_DR, \
+  XXXXXXX, STN_S2 , STN_KL , STN_WL , STN_RL , STN_ST2,                     STN_ST4, STN_RR , STN_BR , STN_GR , STN_SR , STN_ZR, \
+  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,TG(_PLOVER),XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, \
+                             XXXXXXX,   STN_A, STN_O  , XXXXXXX,   XXXXXXX, STN_E,STN_U, XXXXXXX\
   )
 };
 
@@ -148,18 +148,6 @@ void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
 
 //SSD1306 OLED update loop, make sure to enable OLED_DRIVER_ENABLE=yes in rules.mk
 #ifdef OLED_ENABLE
-/*
-#define OLED_BYTE_COUNT 512
-#define ANIM_FRAME_COUNT 2
-#define FAST_TYPE_THRESH 40 //WPM
-#define SLOW_TYPE_THRESH 20 //WPM
-*/
-#define IDLE_FRAMES 5
-#define IDLE_SPEED 30
-#define TAP_FRAMES 2
-#define TAP_SPEED 40
-#define ANIM_FRAME_DURATION 200
-#define ANIM_SIZE 512
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   print("oled init");
@@ -170,8 +158,8 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 
 void keyboard_post_init_user(void) {
   // Customise these values to desired behaviour
-  debug_enable=true;
-  debug_matrix=true;
+  //debug_enable=true;
+  //debug_matrix=true;
   //debug_keyboard=true;
   //debug_mouse=true;
 } 
@@ -190,12 +178,19 @@ const char *read_keylogs(void);
 // const char *read_timelog(void);
 bool gui_on = true;
 char wpm_str[10];
+
+#ifdef BONGO_CAT_ANIM
+#define IDLE_FRAMES 5
+#define IDLE_SPEED 30
+#define TAP_FRAMES 2
+#define TAP_SPEED 40
+#define ANIM_FRAME_DURATION 200
+#define ANIM_SIZE 512
+static long int oled_timeout = 60000; //1 minute 
 uint32_t anim_timer = 0;
 uint32_t anim_sleep = 0;
 uint8_t current_idle_frame = 0;
 uint8_t current_tap_frame = 0;
-static long int oled_timeout = 60000; //1 minute 
-
 static void render_logo(void) {
       // Idle animation
     static const char PROGMEM idle[IDLE_FRAMES][ANIM_SIZE] = {
@@ -297,6 +292,7 @@ static void render_logo(void) {
         }
     }
 }
+#endif //BONGO_CAT_ANIM
 
 void oled_task_user(void) {
   if (is_keyboard_master()) {
@@ -311,7 +307,12 @@ void oled_task_user(void) {
     //oled_write_ln(read_host_led_state(), false);
     //oled_write_ln(read_timelog(), false);
   } else {
+    #ifdef BONGO_CAT_ANIM
     render_logo();
+    #endif
+    #ifndef BONGO_CAT_ANIM
+    oled_write(read_logo(), false);
+    #endif
   }
 }
 #endif // OLED_ENABLE
