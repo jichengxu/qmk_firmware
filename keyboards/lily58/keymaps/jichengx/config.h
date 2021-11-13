@@ -49,6 +49,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RGBLIGHT_SAT_STEP 17
 #define RGBLIGHT_VAL_STEP 17
 
+#define NO_ACTION_MACRO
+#define NO_ACTION_FUNCTION
 // Underglow
 /*
 #undef RGBLED_NUM
