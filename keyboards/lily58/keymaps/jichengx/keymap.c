@@ -1,5 +1,11 @@
 #include QMK_KEYBOARD_H
 
+#include "keymap_steno.h"
+
+#ifdef CONSOLE_ENABLE
+  #include "print.h"
+#endif
+
 #ifdef PROTOCOL_LUFA
   #include "lufa.h"
   #include "split_util.h"
@@ -15,7 +21,7 @@ enum layer_number {
   _LOWER,
   _RAISE,
   _ADJUST,
-  _STENO,
+  _PLOVER,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -39,7 +45,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_GRV,   KC_1,   KC_2,    KC_3,    KC_4,    KC_5,                     KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC, \
   KC_TAB,   KC_Q,   KC_W,    KC_E,    KC_R,    KC_T,                     KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_ENTER, \
   KC_ESC,   KC_A,   KC_S,    KC_D,    KC_F,    KC_G,                     KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOTE, \
-  KC_LSFT,  KC_Z,   KC_X,    KC_C,    KC_V,    KC_B, KC_WH_D,TG(_STENO), KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,  KC_RSFT, \
+  KC_LSFT,  KC_Z,   KC_X,    KC_C,    KC_V,    KC_B, KC_WH_D,TG(_PLOVER), KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH,  KC_RSFT, \
                         KC_LGUI, KC_LALT,MO(_LOWER),KC_LCTRL, KC_SPC,MO(_RAISE), KC_ENTER, KC_RGUI \
 ),
 /* LOWER
@@ -121,12 +127,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *                   |      |      |      |/       /         \      \ |      |      |      |
  *                   `----------------------------'           '------''--------------------'
  */
-  [_STENO] = LAYOUT( \
-  _______, KC_VOLD, KC_VOLU, KC_MPRV, KC_MPLY, KC_MNXT,                   _______, _______, _______, _______, _______, _______, \
-  _______, _______, KC_BTN2, KC_MS_U, KC_BTN1, KC_BTN3,                   _______, KC_P7   , KC_P8  , KC_P9 , _______, _______, \
-  _______, _______, KC_MS_L, KC_MS_D, KC_MS_R, KC_BTN4,                   _______, KC_P4   , KC_P5  , KC_P6 , _______, _______, \
-  _______, _______, _______, _______, _______, KC_BTN5, _______, _______, KC_P0  , KC_P1   , KC_P2  , KC_P3 , _______, _______, \
-                             _______, _______, _______, _______, _______,  _______, _______, _______ \
+/*
+[_PLOVER] = LAYOUT_planck_grid(
+  STN_N1,  STN_N2,  STN_N3,  STN_N4,  STN_N5,  STN_N6,  STN_N7,  STN_N8,  STN_N9,  STN_NA,  STN_NB,  STN_NC ,
+  STN_FN,  STN_S1,  STN_TL,  STN_PL,  STN_HL,  STN_ST1, STN_ST3, STN_FR,  STN_PR,  STN_LR,  STN_TR,  STN_DR ,
+  XXXXXXX, STN_S2,  STN_KL,  STN_WL,  STN_RL,  STN_ST2, STN_ST4, STN_RR,  STN_BR,  STN_GR,  STN_SR,  STN_ZR ,
+  EXT_PLV, XXXXXXX, XXXXXXX, STN_A,   STN_O,   XXXXXXX, XXXXXXX, STN_E,   STN_U,   STN_PWR, STN_RE1, STN_RE2
+),
+*/
+  [_PLOVER] = LAYOUT( \
+  STN_N1 , STN_N2 , STN_N3 , STN_N4 , STN_N5 , STN_N6 ,                   STN_N7 , STN_N8  , STN_N9 , STN_NA, STN_NB , STN_NC , \
+  _______, STN_S1 , STN_TL , STN_PL , STN_HL , STN_ST1,                   STN_ST3, STN_FR  , STN_PR , STN_LR, STN_TR , STN_DR , \
+  _______, STN_S2 , STN_KL , STN_WL , STN_RL , STN_ST2,                   STN_ST4, STN_RR  , STN_BR , STN_GR, STN_SR , STN_ZR , \
+  _______, _______, _______, _______, _______, _______,_______,TG(_PLOVER), _______, _______, _______, _______, _______, _______, \
+                             _______, _______, STN_A  , STN_O , STN_E     , STN_E  , _______, _______ \
   )
 };
 
@@ -160,6 +174,14 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     return OLED_ROTATION_180;  // flips the display 180 degrees if offhand
   return rotation;
 }
+
+void keyboard_post_init_user(void) {
+  // Customise these values to desired behaviour
+  debug_enable=true;
+  debug_matrix=true;
+  //debug_keyboard=true;
+  //debug_mouse=true;
+} 
 
 // When you add source files to SRC in rules.mk, you can use functions.
 const char *read_layer_state(void);
@@ -308,6 +330,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #endif
     // set_timelog();
   }
+#ifdef CONSOLE_ENABLE
+    //uprintf("KL: kc: 0x%04X, col: %u, row: %u, pressed: %b, time: %u, interrupt: %b, count: %u\n", keycode, record->event.key.col, record->event.key.row, record->event.pressed, record->event.time, record->tap.interrupted, record->tap.count);
+#endif 
   switch (keycode) {
     case _LOWER:
       if (record->event.pressed) {
