@@ -6,6 +6,7 @@
   #include "print.h"
 #endif
 
+
 #ifdef PROTOCOL_LUFA
   #include "lufa.h"
   #include "split_util.h"
@@ -14,7 +15,6 @@
   #include "ssd1306.h"
 #endif
 
-extern uint8_t is_master;
 
 enum layer_number {
   _QWERTY = 0,
@@ -127,14 +127,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *                   |      |      |      |/       /         \      \ |      |      |      |
  *                   `----------------------------'           '------''--------------------'
  */
-/*
-[_PLOVER] = LAYOUT_planck_grid(
-  STN_N1,  STN_N2,  STN_N3,  STN_N4,  STN_N5,  STN_N6,  STN_N7,  STN_N8,  STN_N9,  STN_NA,  STN_NB,  STN_NC ,
-  STN_FN,  STN_S1,  STN_TL,  STN_PL,  STN_HL,  STN_ST1, STN_ST3, STN_FR,  STN_PR,  STN_LR,  STN_TR,  STN_DR ,
-  XXXXXXX, STN_S2,  STN_KL,  STN_WL,  STN_RL,  STN_ST2, STN_ST4, STN_RR,  STN_BR,  STN_GR,  STN_SR,  STN_ZR ,
-  EXT_PLV, XXXXXXX, XXXXXXX, STN_A,   STN_O,   XXXXXXX, XXXXXXX, STN_E,   STN_U,   STN_PWR, STN_RE1, STN_RE2
-),
-*/
   [_PLOVER] = LAYOUT( \
   STN_N1 , STN_N2 , STN_N3 , STN_N4 , STN_N5 , STN_N6 ,                   STN_N7 , STN_N8  , STN_N9 , STN_NA, STN_NB , STN_NC , \
   _______, STN_S1 , STN_TL , STN_PL , STN_HL , STN_ST1,                   STN_ST3, STN_FR  , STN_PR , STN_LR, STN_TR , STN_DR , \
@@ -155,7 +147,7 @@ void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
 
 
 //SSD1306 OLED update loop, make sure to enable OLED_DRIVER_ENABLE=yes in rules.mk
-#ifdef OLED_DRIVER_ENABLE
+#ifdef OLED_ENABLE
 /*
 #define OLED_BYTE_COUNT 512
 #define ANIM_FRAME_COUNT 2
@@ -170,6 +162,7 @@ void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
 #define ANIM_SIZE 512
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+  print("oled init");
   if (!is_keyboard_master())
     return OLED_ROTATION_180;  // flips the display 180 degrees if offhand
   return rotation;
@@ -321,7 +314,7 @@ void oled_task_user(void) {
     render_logo();
   }
 }
-#endif // OLED_DRIVER_ENABLE
+#endif // OLED_ENABLE
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
